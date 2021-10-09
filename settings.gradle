@@ -1,0 +1,3 @@
+include ':open_memory'
+include ':app'
+rootProject.name = "OpenMemory"
