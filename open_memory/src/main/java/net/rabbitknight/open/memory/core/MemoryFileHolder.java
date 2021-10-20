@@ -167,11 +167,15 @@ public class MemoryFileHolder implements Parcelable {
         return true;
     }
 
+    public int getSize() {
+        return size;
+    }
+
     /**
      * 销毁方法
      * 释放资源占用
      */
-    public void deInit() {
+    public void close() {
         if (memoryFile != null)
             memoryFile.close();
         if (parcelFileDescriptor != null) {
@@ -232,7 +236,6 @@ public class MemoryFileHolder implements Parcelable {
         } else {
             dest.writeParcelable(parcelFileDescriptor, flags);
         }
-
 
     }
 
