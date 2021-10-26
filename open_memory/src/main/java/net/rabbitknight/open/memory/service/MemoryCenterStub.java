@@ -2,6 +2,7 @@ package net.rabbitknight.open.memory.service;
 
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -18,8 +19,8 @@ import static net.rabbitknight.open.memory.C.KEY_HOLDER;
 public class MemoryCenterStub extends IMemoryCenter.Stub {
     private static final String TAG = "MemoryCenterStub";
 
-    private Map<String, MemoryFileHolder> fileMap = new HashMap<>();
-    private Map<String, IMemoryCallback> callbackMap = new HashMap<>();
+    private final Map<String, MemoryFileHolder> fileMap = new HashMap<>();
+    private final Map<String, RemoteCallbackList<IMemoryCallback>> callbackMap = new HashMap<>();
 
     /**
      * 开启共享内存
@@ -59,26 +60,20 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
      */
     @Override
     public int call(String key, int offset, int length, long ts, Bundle args) throws RemoteException {
-        Log.d(TAG, "call() called with: key = [" + key + "], offset = [" + offset + "], length = [" + length + "], ts = [" + ts + "], args = [" + args + "]");
-        IMemoryCallback callback = callbackMap.get(key);
-        if (callback == null) {
+//        Log.d(TAG, "call() called with: key = [" + key + "], offset = [" + offset + "], length = [" + length + "], ts = [" + ts + "], args = [" + args + "]");
+        RemoteCallbackList<IMemoryCallback> callbackList = callbackMap.get(key);
+        if (callbackList == null) {
             Log.w(TAG, "call: callback is null");
             return -1;
         }
-        boolean alive = callback.asBinder().isBinderAlive();
-        if (!alive) {
-            Log.w(TAG, "call: callback not alive!");
-            return -1;
-        }
-        boolean success = false;
-        try {
-            callback.onCall(key, offset, length, ts, args);
-            success = true;
-        } catch (Exception e) {
-            Log.w(TAG, "call: Exception", e);
-        }
-        if (!success) {
-            return -1;
+        // 加锁 保证原子性
+        synchronized (this) {
+            int count = callbackList.beginBroadcast();
+            for (int i = 0; i < count; i++) {
+                IMemoryCallback callback = callbackList.getBroadcastItem(i);
+                callback.onCall(key, offset, length, ts, args);
+            }
+            callbackList.finishBroadcast();
         }
         return 0;
     }
@@ -104,7 +99,12 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
             Log.w(TAG, "listen() called with: callback == null,key = [" + key + "], args = [" + args + "]");
             return -1;
         }
-        callbackMap.put(key, callback);
+        RemoteCallbackList<IMemoryCallback> callbackList = callbackMap.get(key);
+        if (callbackList == null) {
+            callbackList = new RemoteCallbackList<>();
+            callbackMap.put(key, callbackList);
+        }
+        callbackList.register(callback);
         return 0;
     }
 

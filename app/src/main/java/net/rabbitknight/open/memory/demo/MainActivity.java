@@ -1,5 +1,6 @@
 package net.rabbitknight.open.memory.demo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -25,9 +26,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initView();
-        this.sender = openMemory.createSender("test", 1024);
+        this.sender = openMemory.createSender("test1", 1024);
 
-        this.receiver = openMemory.createReceiver("test", 1024);
+        this.receiver = openMemory.createReceiver("test2", 1024);
         this.receiver.listen(new Receiver.Callback() {
             @Override
             public void onReceive(byte[] payload, int offset, int length, long timestamp) {
@@ -36,12 +37,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         openMemory.bind();
+        Intent intent = new Intent(this, RemoteService.class);
+        startService(intent);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         openMemory.unbind();
+        Intent intent = new Intent(this, RemoteService.class);
+        stopService(intent);
     }
 
     private void initView() {
@@ -58,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
                         for (int i = 0; i < 10000; i++) {
                             long time = System.currentTimeMillis();
                             String msg = "time:" + time + ",count:" + count++;
-                            sender.send(msg.getBytes(), 0, msg.getBytes().length, System.currentTimeMillis());
+                            sender.send(msg.getBytes(), 0, msg.getBytes().length, time);
                         }
                     }
                 }).start();
@@ -70,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                         for (int i = 0; i < 10000; i++) {
                             long time = System.currentTimeMillis();
                             String msg = "time:" + time + ",count:" + aa++;
-                            sender.send(msg.getBytes(), 0, msg.getBytes().length, System.currentTimeMillis());
+                            sender.send(msg.getBytes(), 0, msg.getBytes().length, time);
                         }
                     }
                 }).start();

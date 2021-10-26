@@ -1,84 +1,60 @@
 package net.rabbitknight.open.memory;
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 
-import net.rabbitknight.open.memory.core.IConnectListener;
+import net.rabbitknight.open.memory.core.OpenMemoryImpl;
 import net.rabbitknight.open.memory.core.Receiver;
 import net.rabbitknight.open.memory.core.Sender;
-import net.rabbitknight.open.memory.service.MemoryCenterService;
 
-import java.lang.ref.WeakReference;
-import java.util.HashSet;
-import java.util.Set;
-
+/**
+ * 外观类
+ */
 public class OpenMemory {
+    private OpenMemoryImpl innerOpenMemory;
 
-    private WeakReference<Context> contextWeakReference = null;
-    private Set<IConnectListener> connectListeners = new HashSet<>();
-    private Class<?> serviceClazz = MemoryCenterService.class;
-
-    private IMemoryCenter remoteBinder = null;
-
+    /**
+     * 创建共享内存
+     *
+     * @param context 上下文
+     * @param service 中心服务
+     */
     public OpenMemory(Context context, Class<?> service) {
-        this.contextWeakReference = new WeakReference<>(context);
-        if (service != null)
-            this.serviceClazz = service;
+        innerOpenMemory = new OpenMemoryImpl(context, service);
     }
 
+    /**
+     * 绑定服务
+     */
     public void bind() {
-        Context context = contextWeakReference.get();
-        if (context == null) {
-            throw new IllegalStateException("context is null");
-        }
-        Intent intent = new Intent(context, serviceClazz);
-        context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        innerOpenMemory.bind();
     }
 
+    /**
+     * 解除绑定
+     */
     public void unbind() {
-        Context context = contextWeakReference.get();
-        if (context == null) {
-            throw new IllegalStateException("context is null");
-        }
-        context.unbindService(serviceConnection);
+        innerOpenMemory.unbind();
     }
 
-    public IMemoryCenter getRemoteBinder() {
-        return remoteBinder;
-    }
-
+    /**
+     * 创建发送器
+     *
+     * @param key  key
+     * @param size 内存大小
+     * @return
+     */
     public Sender createSender(String key, int size) {
-        Sender sender = new Sender(this, key, size);
-        connectListeners.add(sender);
-        return sender;
+        return innerOpenMemory.createSender(key, size);
     }
 
+    /**
+     * 创建接收器
+     *
+     * @param key  key
+     * @param size 内存大小
+     * @return
+     */
     public Receiver createReceiver(String key, int size) {
-        Receiver receiver = new Receiver(this, key, size);
-        connectListeners.add(receiver);
-        return receiver;
+        return innerOpenMemory.createReceiver(key, size);
     }
-
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            // 创建远程服务
-            remoteBinder = IMemoryCenter.Stub.asInterface(service);
-            // 通知已经链接
-            for (IConnectListener listener : connectListeners) {
-                listener.onServiceConnected();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            // 通知已经关闭
-            for (IConnectListener listener : connectListeners) {
-                listener.onServiceDisconnected();
-            }
-        }
-    };
 }

@@ -6,17 +6,16 @@ import android.util.Log;
 
 import net.rabbitknight.open.memory.ErrorCode;
 import net.rabbitknight.open.memory.IMemoryCenter;
-import net.rabbitknight.open.memory.OpenMemory;
 
 import java.lang.ref.WeakReference;
 
 import static net.rabbitknight.open.memory.C.KEY_HOLDER;
 
-public class Sender implements IConnectListener {
+public class Sender {
     private static final String TAG = "Sender";
-    private WeakReference<OpenMemory> openMemoryWeakReference = null;
-    private String key;
-    private int size;
+    private WeakReference<OpenMemoryImpl> openMemoryWeakReference = null;
+    private final String key;
+    private final int size;
 
     private IMemoryCenter memoryCenter;
     private MemoryFileHolder fileHolder;
@@ -30,7 +29,7 @@ public class Sender implements IConnectListener {
      * @param key    共享内存
      * @param size   大小
      */
-    public Sender(OpenMemory memory, String key, int size) {
+    Sender(OpenMemoryImpl memory, String key, int size) {
         this.openMemoryWeakReference = new WeakReference<>(memory);
         this.key = key;
         this.size = size;
@@ -53,56 +52,67 @@ public class Sender implements IConnectListener {
         if (fileHolder == null) {
             return ErrorCode.ERROR;
         }
-        // 写文件
-        boolean write = fileHolder.writeBytes(payload, offset, length);
-        if (!write) {
-            return ErrorCode.ERROR;
-        }
         Bundle args = new Bundle();
-        // 通知
+        boolean write = false;
         boolean call = false;
-        try {
-            int rst = remoteBinder.call(key, offset, length, timestamp, args);
-            if (rst == ErrorCode.SUCCESS) {
-                call = true;
+        synchronized (this) {
+            // 写文件
+            write = fileHolder.writeBytes(payload, offset, length);
+            if (!write) {
+                return ErrorCode.ERROR;
             }
-        } catch (RemoteException e) {
-            e.printStackTrace();
+            // 通知
+            try {
+                int rst = remoteBinder.call(key, offset, length, timestamp, args);
+                if (rst == ErrorCode.SUCCESS) {
+                    call = true;
+                }
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
+
         if (!call) {
             return ErrorCode.ERROR;
         }
         return ErrorCode.SUCCESS;
     }
 
-    @Override
-    public void onServiceConnected() {
-        connected = true;
-        OpenMemory memory = openMemoryWeakReference.get();
-        if (memory == null) {
-            Log.w(TAG, "onServiceConnected: memory is null!!");
-            return;
-        }
-        memoryCenter = memory.getRemoteBinder();
-        // 链接
-        Bundle args = new Bundle();
-        try {
-            memoryCenter.open(key, size, args);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-            Log.w(TAG, "onServiceConnected: ", e);
-        }
-        args.setClassLoader(MemoryFileHolder.class.getClassLoader());
-        MemoryFileHolder holder = args.getParcelable(KEY_HOLDER);
-        if (holder != null) {
-            this.fileHolder = holder;
-        }
+    public IConnectListener getConnection() {
+        return connection;
     }
 
-    @Override
-    public void onServiceDisconnected() {
-        connected = false;
-        memoryCenter = null;
-        fileHolder = null;
-    }
+    private final IConnectListener connection = new IConnectListener() {
+
+        @Override
+        public void onServiceConnected() {
+            connected = true;
+            OpenMemoryImpl memory = openMemoryWeakReference.get();
+            if (memory == null) {
+                Log.w(TAG, "onServiceConnected: memory is null!!");
+                return;
+            }
+            memoryCenter = memory.getRemoteBinder();
+            // 链接
+            Bundle args = new Bundle();
+            try {
+                memoryCenter.open(key, size, args);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                Log.w(TAG, "onServiceConnected: ", e);
+            }
+            args.setClassLoader(MemoryFileHolder.class.getClassLoader());
+            MemoryFileHolder holder = args.getParcelable(KEY_HOLDER);
+            if (holder != null) {
+                fileHolder = holder;
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected() {
+            connected = false;
+            memoryCenter = null;
+            fileHolder = null;
+        }
+    };
 }
