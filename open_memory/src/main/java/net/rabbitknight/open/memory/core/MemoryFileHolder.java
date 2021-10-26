@@ -7,6 +7,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.Parcelable;
 import android.os.SharedMemory;
 import android.system.ErrnoException;
+import android.system.OsConstants;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -91,7 +92,7 @@ public class MemoryFileHolder implements Parcelable {
                 return;
             }
             try {
-                sharedBuffer = sharedMemory.mapReadOnly();
+                sharedBuffer = sharedMemory.mapReadWrite();
             } catch (ErrnoException e) {
                 e.printStackTrace();
             }
