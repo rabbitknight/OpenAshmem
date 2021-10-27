@@ -18,8 +18,9 @@ public class OpenMemoryImpl {
     private WeakReference<Context> contextWeakReference = null;
     private final Set<IConnectListener> connectListeners = new HashSet<>();
     private Class<?> serviceClazz = MemoryCenterService.class;
-
     private IMemoryCenter remoteBinder = null;
+
+    private volatile boolean connected = false;
 
     public OpenMemoryImpl(Context context, Class<?> service) {
         this.contextWeakReference = new WeakReference<>(context);
@@ -50,33 +51,75 @@ public class OpenMemoryImpl {
 
     public Sender createSender(String key, int size) {
         Sender sender = new Sender(this, key, size);
-        connectListeners.add(sender.getConnection());
+        synchronized (connectListeners) {
+            connectListeners.add(sender.getConnection());
+            // 如果已经链接 直接请求
+            if (connected) {
+                sender.getConnection().onServiceConnected();
+            }
+        }
         return sender;
     }
 
     public Receiver createReceiver(String key, int size) {
         Receiver receiver = new Receiver(this, key, size);
-        connectListeners.add(receiver.getConnection());
+        synchronized (connectListeners) {
+            connectListeners.add(receiver.getConnection());
+            // 如果已经链接 直接请求
+            if (connected) {
+                receiver.getConnection().onServiceConnected();
+            }
+        }
         return receiver;
+    }
+
+    void close(Sender sender) {
+        synchronized (connectListeners) {
+            connectListeners.remove(sender.getConnection());
+        }
+    }
+
+    void close(Receiver receiver) {
+        synchronized (connectListeners) {
+            connectListeners.remove(receiver.getConnection());
+        }
     }
 
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+
             // 创建远程服务
             remoteBinder = IMemoryCenter.Stub.asInterface(service);
-            // 通知已经链接
-            for (IConnectListener listener : connectListeners) {
-                listener.onServiceConnected();
+            // 已链接
+            connected = true;
+
+            synchronized (connectListeners) {
+                // 通知已经链接
+                for (IConnectListener listener : connectListeners) {
+                    try {
+                        listener.onServiceConnected();
+                    } catch (Exception e) {
+                    }
+                }
             }
+
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            // 通知已经关闭
-            for (IConnectListener listener : connectListeners) {
-                listener.onServiceDisconnected();
+            // 断开
+            connected = false;
+            synchronized (connectListeners) {
+                // 通知已经关闭
+                for (IConnectListener listener : connectListeners) {
+                    try {
+                        listener.onServiceDisconnected();
+                    } catch (Exception e) {
+                    }
+                }
             }
+
         }
     };
 }

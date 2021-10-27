@@ -5,4 +5,5 @@ public class C {
 
     public static final String KEY_HOLDER = "key_holder";
     public static final String KEY_CALLBACK = "key_callback";
+    public static final String KEY_CLIENT = "key_client";
 }

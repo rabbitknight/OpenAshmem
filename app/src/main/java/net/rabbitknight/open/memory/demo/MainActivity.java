@@ -82,6 +82,13 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        findViewById(R.id.btn_crash).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int x = 1 / 0;
+            }
+        });
     }
 
 

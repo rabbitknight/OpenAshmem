@@ -6,8 +6,10 @@ import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
 
+import net.rabbitknight.open.memory.C;
 import net.rabbitknight.open.memory.IMemoryCallback;
 import net.rabbitknight.open.memory.IMemoryCenter;
+import net.rabbitknight.open.memory.IMemoryClient;
 import net.rabbitknight.open.memory.core.MemoryFileHolder;
 
 import java.util.HashMap;
@@ -19,7 +21,7 @@ import static net.rabbitknight.open.memory.C.KEY_HOLDER;
 public class MemoryCenterStub extends IMemoryCenter.Stub {
     private static final String TAG = "MemoryCenterStub";
 
-    private final Map<String, MemoryFileHolder> fileMap = new HashMap<>();
+    private final Map<String, MemoryHolder> fileMap = new HashMap<>();
     private final Map<String, RemoteCallbackList<IMemoryCallback>> callbackMap = new HashMap<>();
 
     /**
@@ -32,18 +34,31 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
      * @throws RemoteException 远程调用异常
      */
     @Override
-    public int open(String key, int size, Bundle args) throws RemoteException {
+    public int open(final String key, int size, Bundle args) throws RemoteException {
         Log.d(TAG, "open() called with: key = [" + key + "], size = [" + size + "], args = [" + args + "]");
-        MemoryFileHolder holder = fileMap.get(key);
-        if (holder == null) {
-            holder = new MemoryFileHolder(key, size);
-            fileMap.put(key, holder);
+        MemoryHolder memoryHolder = fileMap.get(key);
+        MemoryFileHolder fileHolder = null;
+        if (memoryHolder == null) {
+            fileHolder = new MemoryFileHolder(key, size);
+            memoryHolder = new MemoryHolder(fileHolder, new MemoryHolder.OnClearListener() {
+                @Override
+                public void onClear() {
+                    Log.w(TAG, "onClear() called with " + key);
+                    fileMap.remove(key);
+                }
+            });
+            fileMap.put(key, memoryHolder);
+        } else {
+            fileHolder = memoryHolder.getFileHolder();
         }
-        if (size != holder.getSize()) {
+        if (size != fileHolder.getSize()) {
             return -1;
         }
+        args.setClassLoader(IMemoryClient.Stub.class.getClassLoader());
+        IBinder binder = args.getBinder(C.KEY_CLIENT);
+        memoryHolder.linkTo(binder);
         args.setClassLoader(MemoryFileHolder.class.getClassLoader());
-        args.putParcelable(KEY_HOLDER, holder);
+        args.putParcelable(KEY_HOLDER, fileHolder);
         return 0;
     }
 
@@ -109,12 +124,8 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
     }
 
     @Override
-    public int close(String key) throws RemoteException {
-        MemoryFileHolder holder = fileMap.remove(key);
-        if (holder == null) {
-            return -1;
-        }
-        holder.close();
+    public int close(String key, Bundle args) throws RemoteException {
+        Log.d(TAG, "close() called with: key = [" + key + "], args = [" + args + "]");
         return 0;
     }
 }

@@ -8,12 +8,13 @@ import net.rabbitknight.open.memory.C;
 import net.rabbitknight.open.memory.ErrorCode;
 import net.rabbitknight.open.memory.IMemoryCallback;
 import net.rabbitknight.open.memory.IMemoryCenter;
+import net.rabbitknight.open.memory.IMemoryClient;
 
 import java.lang.ref.WeakReference;
 
 import static net.rabbitknight.open.memory.C.KEY_HOLDER;
 
-public class Receiver {
+public class Receiver extends IMemoryClient.Stub {
     private static final String TAG = "Receiver";
     private WeakReference<OpenMemoryImpl> openMemoryWeakReference = null;
     private final String key;
@@ -67,6 +68,7 @@ public class Receiver {
             // 获取MemoryFile
             Bundle args = new Bundle();
             try {
+                args.putBinder(C.KEY_CLIENT, Receiver.this.asBinder());
                 memoryCenter.open(key, size, args);
             } catch (RemoteException e) {
                 e.printStackTrace();
@@ -97,6 +99,26 @@ public class Receiver {
             memoryCenter = null;
         }
     };
+
+    public void close() {
+        if (connected) {
+            IMemoryCenter memoryCenter = this.memoryCenter;
+            if (memoryCenter != null) {
+                Bundle args = new Bundle();
+                args.putBinder(C.KEY_CLIENT, this.asBinder());
+                try {
+                    memoryCenter.close(key, args);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        // 关闭
+        OpenMemoryImpl openMemory = openMemoryWeakReference.get();
+        if (openMemory != null) {
+            openMemory.close(this);
+        }
+    }
 
     /**
      * 回调监听

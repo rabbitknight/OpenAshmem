@@ -9,7 +9,7 @@ interface IMemoryCenter {
     * 打开连接端口
     * @param args 存储返回的序列化文件描述符
     **/
-    int open(String key,int size, out Bundle args);
+    int open(String key,int size, inout Bundle args);
 
     /**
     * 通知服务已经写入了
@@ -22,6 +22,6 @@ interface IMemoryCenter {
     /**
     * 关闭端口
     **/
-    int close(String key);
+    int close(String key,in Bundle args);
 
 }
