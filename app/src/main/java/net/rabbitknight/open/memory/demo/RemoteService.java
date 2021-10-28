@@ -8,23 +8,12 @@ import android.util.Log;
 import net.rabbitknight.open.memory.OpenMemory;
 import net.rabbitknight.open.memory.core.Receiver;
 import net.rabbitknight.open.memory.core.Sender;
-import net.rabbitknight.open.memory.service.MemoryCenterService;
 
 public class RemoteService extends Service {
     private static final String TAG = "RemoteService";
-    private OpenMemory openMemory = new OpenMemory(this, MemoryCenterService.class);
+    private OpenMemory openMemory = null;
 
     public RemoteService() {
-        Sender sender = openMemory.createSender("test2", 1024);
-        Receiver receiver = openMemory.createReceiver("test1", 1024);
-        receiver.listen(new Receiver.Callback() {
-            @Override
-            public void onReceive(byte[] payload, int offset, int length, long timestamp) {
-                String msg = new String(payload, offset, length);
-                Log.d(TAG, "onReceive() called with: payload = [" + msg + "], offset = [" + offset + "], length = [" + length + "], timestamp = [" + timestamp + "]");
-                sender.send(payload, offset, length, timestamp);
-            }
-        });
     }
 
     @Override
@@ -35,7 +24,20 @@ public class RemoteService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        openMemory = new OpenMemory(this);
         openMemory.bind();
+
+        Sender sender = openMemory.createSender("test2", 1024 * 1024);
+        Receiver receiver = openMemory.createReceiver("test1", 1024 * 1024);
+        receiver.listen(new Receiver.Callback() {
+            @Override
+            public void onReceive(byte[] payload, int offset, int length, long timestamp) {
+                String msg = new String(payload, offset, length);
+                Log.d(TAG, "onReceive() called with: payload = [" + msg + "], offset = [" + offset + "], length = [" + length + "], timestamp = [" + timestamp + "]");
+                sender.send(payload, offset, length, timestamp);
+            }
+        });
+
     }
 
     @Override

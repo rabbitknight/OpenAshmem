@@ -7,7 +7,6 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 
 import net.rabbitknight.open.memory.IMemoryCenter;
-import net.rabbitknight.open.memory.service.MemoryCenterService;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -17,15 +16,14 @@ public class OpenMemoryImpl {
 
     private WeakReference<Context> contextWeakReference = null;
     private final Set<IConnectListener> connectListeners = new HashSet<>();
-    private Class<?> serviceClazz = MemoryCenterService.class;
+    private ComponentName componentName = null;
     private IMemoryCenter remoteBinder = null;
 
     private volatile boolean connected = false;
 
-    public OpenMemoryImpl(Context context, Class<?> service) {
+    public OpenMemoryImpl(Context context, ComponentName componentName) {
         this.contextWeakReference = new WeakReference<>(context);
-        if (service != null)
-            this.serviceClazz = service;
+        this.componentName = componentName;
     }
 
     public void bind() {
@@ -33,7 +31,8 @@ public class OpenMemoryImpl {
         if (context == null) {
             throw new IllegalStateException("context is null");
         }
-        Intent intent = new Intent(context, serviceClazz);
+        Intent intent = new Intent();
+        intent.setComponent(componentName);
         context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 

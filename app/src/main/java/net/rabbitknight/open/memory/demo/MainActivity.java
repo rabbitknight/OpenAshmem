@@ -11,12 +11,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import net.rabbitknight.open.memory.OpenMemory;
 import net.rabbitknight.open.memory.core.Receiver;
 import net.rabbitknight.open.memory.core.Sender;
-import net.rabbitknight.open.memory.service.MemoryCenterService;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private Button sendBtn;
-    private OpenMemory openMemory = new OpenMemory(this, MemoryCenterService.class);
+    private OpenMemory openMemory = null;
     private Sender sender = null;
     private Receiver receiver = null;
 
@@ -26,9 +25,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initView();
-        this.sender = openMemory.createSender("test1", 1024);
+        openMemory = new OpenMemory(this);
+        this.sender = openMemory.createSender("test1", 1024 * 1024);
 
-        this.receiver = openMemory.createReceiver("test2", 1024);
+        this.receiver = openMemory.createReceiver("test2", 1024 * 1024);
         this.receiver.listen(new Receiver.Callback() {
             @Override
             public void onReceive(byte[] payload, int offset, int length, long timestamp) {

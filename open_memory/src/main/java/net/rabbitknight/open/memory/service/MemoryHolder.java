@@ -30,6 +30,7 @@ public class MemoryHolder implements IBinder.DeathRecipient {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+        Log.d(TAG, "linkTo() called with: fileHolder = [" + holder + "], count = " + count.get());
     }
 
     public MemoryFileHolder getFileHolder() {
@@ -39,9 +40,9 @@ public class MemoryHolder implements IBinder.DeathRecipient {
     @Override
     public void binderDied() {
         if (count.decrementAndGet() != 0) {
-            Log.i(TAG, "binderDied: count = " + count.get());
             return;
         }
+        Log.i(TAG, "binderDied: count = " + count.get());
         // 通知
         OnClearListener clearListener = MemoryHolder.this.onClearListener;
         if (clearListener != null) {

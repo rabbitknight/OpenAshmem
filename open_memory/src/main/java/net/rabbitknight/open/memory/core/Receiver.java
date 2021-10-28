@@ -21,7 +21,6 @@ public class Receiver extends IMemoryClient.Stub {
     private final int size;
 
     private Callback callback = null;
-    private IMemoryCenter memoryCenter;
     private MemoryFileHolder fileHolder;
     private byte[] cache = null;
 
@@ -58,13 +57,17 @@ public class Receiver extends IMemoryClient.Stub {
 
         @Override
         public void onServiceConnected() {
-            connected = true;
+            Log.d(TAG, "onServiceConnected() called");
             OpenMemoryImpl memory = openMemoryWeakReference.get();
             if (memory == null) {
                 Log.w(TAG, "onServiceConnected: memory is null!!");
                 return;
             }
-            memoryCenter = memory.getRemoteBinder();
+            IMemoryCenter memoryCenter = memory.getRemoteBinder();
+            if (memoryCenter == null) {
+                Log.w(TAG, "onServiceConnected: memory.getRemoteBinder() return null");
+                return;
+            }
             // 获取MemoryFile
             Bundle args = new Bundle();
             try {
@@ -89,35 +92,44 @@ public class Receiver extends IMemoryClient.Stub {
                 }
             } catch (RemoteException e) {
                 e.printStackTrace();
+                Log.w(TAG, "onServiceConnected: memoryCenter.listen error", e);
             }
+
+            connected = true;
         }
 
         @Override
         public void onServiceDisconnected() {
+            Log.d(TAG, "onServiceDisconnected() called");
             connected = false;
             fileHolder = null;
-            memoryCenter = null;
         }
     };
 
     public void close() {
-        if (connected) {
-            IMemoryCenter memoryCenter = this.memoryCenter;
-            if (memoryCenter != null) {
-                Bundle args = new Bundle();
-                args.putBinder(C.KEY_CLIENT, this.asBinder());
-                try {
-                    memoryCenter.close(key, args);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
         // 关闭
         OpenMemoryImpl openMemory = openMemoryWeakReference.get();
         if (openMemory != null) {
             openMemory.close(this);
         }
+        if (openMemory == null) {
+            return;
+        }
+        if (!connected) {
+            return;
+        }
+        IMemoryCenter memoryCenter = openMemory.getRemoteBinder();
+        if (memoryCenter == null) {
+            return;
+        }
+        Bundle args = new Bundle();
+        args.putBinder(C.KEY_CLIENT, this.asBinder());
+        try {
+            memoryCenter.close(key, args);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
