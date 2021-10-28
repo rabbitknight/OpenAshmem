@@ -15,22 +15,22 @@ public class MemoryHolder implements IBinder.DeathRecipient {
     private static final String TAG = "MemoryHolder";
     private final AtomicInteger count = new AtomicInteger(0);
     private final MemoryFileHolder holder;
-    private final OnClearListener onClearListener;
 
-    public MemoryHolder(MemoryFileHolder fileHolder, OnClearListener clearListener) {
-        this.holder = fileHolder;
-        this.onClearListener = clearListener;
+    public MemoryHolder(String key, int size) {
+        this.holder = new MemoryFileHolder(key, size);
     }
 
     public void linkTo(final IBinder binder) {
-        DeathRecipient deathRecipient = new DeathRecipient(binder);
-        try {
-            binder.linkToDeath(deathRecipient, 0);
-            count.incrementAndGet();
-        } catch (RemoteException e) {
-            e.printStackTrace();
+        synchronized (count) {
+            DeathRecipient deathRecipient = new DeathRecipient(binder);
+            try {
+                binder.linkToDeath(deathRecipient, 0);
+                count.incrementAndGet();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            Log.d(TAG, "linkTo() called with: fileHolder = [" + holder + "], count = " + count.get());
         }
-        Log.d(TAG, "linkTo() called with: fileHolder = [" + holder + "], count = " + count.get());
     }
 
     public MemoryFileHolder getFileHolder() {
@@ -39,25 +39,21 @@ public class MemoryHolder implements IBinder.DeathRecipient {
 
     @Override
     public void binderDied() {
-        if (count.decrementAndGet() != 0) {
-            return;
-        }
-        Log.i(TAG, "binderDied: count = " + count.get());
-        // 通知
-        OnClearListener clearListener = MemoryHolder.this.onClearListener;
-        if (clearListener != null) {
-            clearListener.onClear();
-        }
-        // 关闭
-        MemoryFileHolder holder = MemoryHolder.this.holder;
-        if (holder != null) {
+        synchronized (count) {
+            if (count.decrementAndGet() != 0) {
+                return;
+            }
+            Log.i(TAG, "binderDied: count = " + count.get());
+            // 关闭
+            MemoryFileHolder holder = MemoryHolder.this.holder;
             holder.close();
         }
     }
 
-
-    public interface OnClearListener {
-        void onClear();
+    public boolean isClose() {
+        synchronized (count) {
+            return count.get() == 0;
+        }
     }
 
     class DeathRecipient implements IBinder.DeathRecipient {

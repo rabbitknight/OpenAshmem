@@ -69,8 +69,9 @@ public class Sender extends IMemoryClient.Stub {
                 if (rst == ErrorCode.SUCCESS) {
                     call = true;
                 }
-            } catch (RemoteException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
+                Log.w(TAG, "send: remoteBinder.call", e);
             }
         }
 

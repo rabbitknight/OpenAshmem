@@ -36,26 +36,26 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
     @Override
     public int open(final String key, int size, Bundle args) throws RemoteException {
         Log.d(TAG, "open() called with: key = [" + key + "], size = [" + size + "], args = [" + args + "]");
-        MemoryHolder memoryHolder = fileMap.get(key);
-        MemoryFileHolder fileHolder = null;
-        if (memoryHolder == null) {
-            fileHolder = new MemoryFileHolder(key, size);
-            memoryHolder = new MemoryHolder(fileHolder, new MemoryHolder.OnClearListener() {
-                @Override
-                public void onClear() {
-                    Log.w(TAG, "onClear() called with " + key);
-                    fileMap.remove(key);
-                }
-            });
-            fileMap.put(key, memoryHolder);
-        } else {
-            fileHolder = memoryHolder.getFileHolder();
+        MemoryHolder memoryHolder = null;
+        synchronized (fileMap) {
+            memoryHolder = fileMap.get(key);
+            if (memoryHolder == null || memoryHolder.isClose()) {
+                memoryHolder = new MemoryHolder(key, size);
+                fileMap.put(key, memoryHolder);
+            }
         }
+
+        MemoryFileHolder fileHolder = memoryHolder.getFileHolder();
         if (size != fileHolder.getSize()) {
             return -1;
         }
+        // get client
         args.setClassLoader(IMemoryClient.Stub.class.getClassLoader());
         IBinder binder = args.getBinder(C.KEY_CLIENT);
+
+        if (binder == null) {
+            return -1;
+        }
         memoryHolder.linkTo(binder);
         args.setClassLoader(MemoryFileHolder.class.getClassLoader());
         args.putParcelable(KEY_HOLDER, fileHolder);
@@ -82,11 +82,15 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
             return -1;
         }
         // 加锁 保证原子性
-        synchronized (this) {
+        synchronized (callbackMap) {
             int count = callbackList.beginBroadcast();
             for (int i = 0; i < count; i++) {
                 IMemoryCallback callback = callbackList.getBroadcastItem(i);
-                callback.onCall(key, offset, length, ts, args);
+                try {
+                    callback.onCall(key, offset, length, ts, args);
+                } catch (Exception e) {
+                    Log.w(TAG, "call() called with: key = [" + key + "], offset = [" + offset + "], length = [" + length + "], ts = [" + ts + "], args = [" + args + "] exception!", e);
+                }
             }
             callbackList.finishBroadcast();
         }
@@ -104,9 +108,6 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
     @Override
     public int listen(String key, Bundle args) throws RemoteException {
         Log.d(TAG, "listen() called with: key = [" + key + "], args = [" + args + "]");
-        if (callbackMap.containsKey(key)) {
-            return -1;
-        }
         args.setClassLoader(IMemoryCallback.Stub.class.getClassLoader());
         IBinder binder = args.getBinder(KEY_CALLBACK);
         IMemoryCallback callback = IMemoryCallback.Stub.asInterface(binder);
@@ -114,12 +115,14 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
             Log.w(TAG, "listen() called with: callback == null,key = [" + key + "], args = [" + args + "]");
             return -1;
         }
-        RemoteCallbackList<IMemoryCallback> callbackList = callbackMap.get(key);
-        if (callbackList == null) {
-            callbackList = new RemoteCallbackList<>();
-            callbackMap.put(key, callbackList);
+        synchronized (callbackMap) {
+            RemoteCallbackList<IMemoryCallback> callbackList = callbackMap.get(key);
+            if (callbackList == null) {
+                callbackList = new RemoteCallbackList<>();
+                callbackMap.put(key, callbackList);
+            }
+            callbackList.register(callback);
         }
-        callbackList.register(callback);
         return 0;
     }
 
