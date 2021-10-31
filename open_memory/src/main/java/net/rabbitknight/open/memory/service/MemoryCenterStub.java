@@ -43,22 +43,22 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
                 memoryHolder = new MemoryHolder(key, size);
                 fileMap.put(key, memoryHolder);
             }
+
+            MemoryFileHolder fileHolder = memoryHolder.getFileHolder();
+            if (size != fileHolder.getSize()) {
+                return -1;
+            }
+            // get client
+            args.setClassLoader(IMemoryClient.Stub.class.getClassLoader());
+            IBinder binder = args.getBinder(C.KEY_CLIENT);
+            if (binder == null) {
+                return -1;
+            }
+            memoryHolder.linkTo(binder);
+            args.setClassLoader(MemoryFileHolder.class.getClassLoader());
+            args.putParcelable(KEY_HOLDER, fileHolder);
         }
 
-        MemoryFileHolder fileHolder = memoryHolder.getFileHolder();
-        if (size != fileHolder.getSize()) {
-            return -1;
-        }
-        // get client
-        args.setClassLoader(IMemoryClient.Stub.class.getClassLoader());
-        IBinder binder = args.getBinder(C.KEY_CLIENT);
-
-        if (binder == null) {
-            return -1;
-        }
-        memoryHolder.linkTo(binder);
-        args.setClassLoader(MemoryFileHolder.class.getClassLoader());
-        args.putParcelable(KEY_HOLDER, fileHolder);
         return 0;
     }
 

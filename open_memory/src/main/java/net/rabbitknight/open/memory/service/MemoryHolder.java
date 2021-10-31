@@ -17,6 +17,7 @@ public class MemoryHolder implements IBinder.DeathRecipient {
     private final MemoryFileHolder holder;
 
     public MemoryHolder(String key, int size) {
+        Log.d(TAG, "MemoryHolder() called with: key = [" + key + "], size = [" + size + "]");
         this.holder = new MemoryFileHolder(key, size);
     }
 

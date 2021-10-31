@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void run() {
-                        for (int i = 0; i < 10000; i++) {
+                        for (int i = 0; i < 20; i++) {
                             long time = System.currentTimeMillis();
                             String msg = "time:" + time + ",count:" + count++;
                             sender.send(msg.getBytes(), 0, msg.getBytes().length, time);
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void run() {
-                        for (int i = 0; i < 10000; i++) {
+                        for (int i = 0; i < 20; i++) {
                             long time = System.currentTimeMillis();
                             String msg = "time:" + time + ",count:" + aa++;
                             sender.send(msg.getBytes(), 0, msg.getBytes().length, time);
