@@ -11,7 +11,7 @@ import net.rabbitknight.open.memory.IMemoryCenter;
  * 提供Binder实例
  */
 public class MemoryCenterService extends Service {
-    private IMemoryCenter memoryCenter = new MemoryCenterStub();
+    private final IMemoryCenter memoryCenter = new MemoryCenterStub();
 
     public MemoryCenterService() {
     }

@@ -7,6 +7,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import net.rabbitknight.open.memory.C;
+import net.rabbitknight.open.memory.ErrorCode;
 import net.rabbitknight.open.memory.IMemoryCallback;
 import net.rabbitknight.open.memory.IMemoryCenter;
 import net.rabbitknight.open.memory.IMemoryClient;
@@ -17,6 +18,9 @@ import java.util.Map;
 
 import static net.rabbitknight.open.memory.C.KEY_CALLBACK;
 import static net.rabbitknight.open.memory.C.KEY_HOLDER;
+import static net.rabbitknight.open.memory.ErrorCode.ERROR_CLIENT_CALLBACK_LOSS;
+import static net.rabbitknight.open.memory.ErrorCode.ERROR_SERVER_CALLBACK_LOSS;
+import static net.rabbitknight.open.memory.ErrorCode.SUCCESS;
 
 public class MemoryCenterStub extends IMemoryCenter.Stub {
     private static final String TAG = "MemoryCenterStub";
@@ -40,7 +44,7 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
         args.setClassLoader(IMemoryClient.Stub.class.getClassLoader());
         IBinder binder = args.getBinder(C.KEY_CLIENT);
         if (binder == null) {
-            return -1;
+            return ErrorCode.ERROR_CLIENT_CLIENT_LOSS;
         }
         MemoryHolder memoryHolder = null;
         synchronized (fileMap) {
@@ -54,13 +58,13 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
 
         MemoryFileHolder fileHolder = memoryHolder.getFileHolder();
         if (size != fileHolder.getSize()) {
-            return -1;
+            return ErrorCode.ERROR_CLIENT_SIZE_NOT_MATCH;
         }
 
         args.setClassLoader(MemoryFileHolder.class.getClassLoader());
         args.putParcelable(KEY_HOLDER, fileHolder);
 
-        return 0;
+        return SUCCESS;
     }
 
     /**
@@ -80,7 +84,7 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
         RemoteCallbackList<IMemoryCallback> callbackList = callbackMap.get(key);
         if (callbackList == null) {
             Log.w(TAG, "call: callback is null");
-            return -1;
+            return ERROR_SERVER_CALLBACK_LOSS;
         }
         // 加锁 保证原子性
         synchronized (callbackMap) {
@@ -95,7 +99,7 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
             }
             callbackList.finishBroadcast();
         }
-        return 0;
+        return SUCCESS;
     }
 
     /**
@@ -114,7 +118,7 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
         IMemoryCallback callback = IMemoryCallback.Stub.asInterface(binder);
         if (callback == null) {
             Log.w(TAG, "listen() called with: callback == null,key = [" + key + "], args = [" + args + "]");
-            return -1;
+            return ERROR_CLIENT_CALLBACK_LOSS;
         }
         synchronized (callbackMap) {
             RemoteCallbackList<IMemoryCallback> callbackList = callbackMap.get(key);
@@ -124,12 +128,12 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
             }
             callbackList.register(callback);
         }
-        return 0;
+        return SUCCESS;
     }
 
     @Override
     public int close(String key, Bundle args) throws RemoteException {
         Log.d(TAG, "close() called with: key = [" + key + "], args = [" + args + "]");
-        return 0;
+        return SUCCESS;
     }
 }

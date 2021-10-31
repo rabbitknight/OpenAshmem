@@ -12,6 +12,11 @@ import net.rabbitknight.open.memory.IMemoryClient;
 import java.lang.ref.WeakReference;
 
 import static net.rabbitknight.open.memory.C.KEY_HOLDER;
+import static net.rabbitknight.open.memory.ErrorCode.ERROR_SENDER_FILE_CALL;
+import static net.rabbitknight.open.memory.ErrorCode.ERROR_SENDER_FILE_LOSS;
+import static net.rabbitknight.open.memory.ErrorCode.ERROR_SENDER_FILE_WRITE;
+import static net.rabbitknight.open.memory.ErrorCode.ERROR_SENDER_SERVICE_API_LOSS;
+import static net.rabbitknight.open.memory.ErrorCode.ERROR_SENDER_SERVICE_NOT_CONNECT;
 
 public class Sender extends IMemoryClient.Stub {
     private static final String TAG = "Sender";
@@ -44,41 +49,34 @@ public class Sender extends IMemoryClient.Stub {
      */
     public int send(byte[] payload, int offset, int length, long timestamp) {
         if (!connected) {
-            return ErrorCode.ERROR;
+            return ERROR_SENDER_SERVICE_NOT_CONNECT;
         }
         MemoryFileHolder fileHolder = this.fileHolder;
         IMemoryCenter remoteBinder = memoryCenter;
         if (remoteBinder == null) {
-            return ErrorCode.ERROR;
+            return ERROR_SENDER_SERVICE_API_LOSS;
         }
         if (fileHolder == null) {
-            return ErrorCode.ERROR;
+            return ERROR_SENDER_FILE_LOSS;
         }
         Bundle args = new Bundle();
         boolean write = false;
-        boolean call = false;
         synchronized (this) {
             // 写文件
             write = fileHolder.writeBytes(payload, offset, length);
             if (!write) {
-                return ErrorCode.ERROR;
+                return ERROR_SENDER_FILE_WRITE;
             }
             // 通知
             try {
-                int rst = remoteBinder.call(key, offset, length, timestamp, args);
-                if (rst == ErrorCode.SUCCESS) {
-                    call = true;
-                }
+                return remoteBinder.call(key, offset, length, timestamp, args);
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.w(TAG, "send: remoteBinder.call", e);
             }
         }
 
-        if (!call) {
-            return ErrorCode.ERROR;
-        }
-        return ErrorCode.SUCCESS;
+        return ERROR_SENDER_FILE_CALL;
     }
 
     /**

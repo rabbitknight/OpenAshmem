@@ -83,12 +83,11 @@ public class Receiver extends IMemoryClient.Stub {
                 fileHolder = holder;
             }
             // 注册监听
-            boolean listen = false;
             try {
                 args.putBinder(C.KEY_CALLBACK, remoteCallback.asBinder());
                 int rst = memoryCenter.listen(key, args);
-                if (rst == ErrorCode.SUCCESS) {
-                    listen = true;
+                if (rst != ErrorCode.SUCCESS) {
+                    Log.w(TAG, "onServiceConnected: memoryCenter.listen fail! rst = " + rst);
                 }
             } catch (RemoteException e) {
                 e.printStackTrace();
