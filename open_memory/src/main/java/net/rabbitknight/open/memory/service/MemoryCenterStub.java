@@ -36,6 +36,12 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
     @Override
     public int open(final String key, int size, Bundle args) throws RemoteException {
         Log.d(TAG, "open() called with: key = [" + key + "], size = [" + size + "], args = [" + args + "]");
+        // get client
+        args.setClassLoader(IMemoryClient.Stub.class.getClassLoader());
+        IBinder binder = args.getBinder(C.KEY_CLIENT);
+        if (binder == null) {
+            return -1;
+        }
         MemoryHolder memoryHolder = null;
         synchronized (fileMap) {
             memoryHolder = fileMap.get(key);
@@ -43,21 +49,16 @@ public class MemoryCenterStub extends IMemoryCenter.Stub {
                 memoryHolder = new MemoryHolder(key, size);
                 fileMap.put(key, memoryHolder);
             }
-
-            MemoryFileHolder fileHolder = memoryHolder.getFileHolder();
-            if (size != fileHolder.getSize()) {
-                return -1;
-            }
-            // get client
-            args.setClassLoader(IMemoryClient.Stub.class.getClassLoader());
-            IBinder binder = args.getBinder(C.KEY_CLIENT);
-            if (binder == null) {
-                return -1;
-            }
             memoryHolder.linkTo(binder);
-            args.setClassLoader(MemoryFileHolder.class.getClassLoader());
-            args.putParcelable(KEY_HOLDER, fileHolder);
         }
+
+        MemoryFileHolder fileHolder = memoryHolder.getFileHolder();
+        if (size != fileHolder.getSize()) {
+            return -1;
+        }
+
+        args.setClassLoader(MemoryFileHolder.class.getClassLoader());
+        args.putParcelable(KEY_HOLDER, fileHolder);
 
         return 0;
     }
