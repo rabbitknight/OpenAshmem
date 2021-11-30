@@ -3,6 +3,7 @@ package net.rabbitknight.open.memory.utils;
 import android.os.Build;
 import android.os.MemoryFile;
 import android.os.ParcelFileDescriptor;
+import android.util.Log;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -10,6 +11,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 
 public class MemoryFileUtils {
+    private static final String TAG = "MemoryFileUtils";
+
     /**
      * 创建共享内存对象
      *
@@ -55,12 +58,10 @@ public class MemoryFileUtils {
     public static MemoryFile openMemoryFile(FileDescriptor fd, int length, int mode) {
         if (mode != OPEN_READONLY && mode != OPEN_READWRITE)
             throw new IllegalArgumentException("invalid mode, only support OPEN_READONLY and OPEN_READWRITE");
-
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
-            return openMemoryFileV26(fd, length, mode);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            return openMemoryFileV27(fd, mode);
         }
-
-        return openMemoryFileV27(fd, mode);
+        return openMemoryFileV26(fd, length, mode);
     }
 
     private static MemoryFile openMemoryFileV27(FileDescriptor fd, int mode) {
@@ -99,6 +100,7 @@ public class MemoryFileUtils {
 
         } catch (Exception e) {
             e.printStackTrace();
+            Log.e(TAG, "openMemoryFileV26: error ", e);
         }
 
         return memoryFile;

@@ -16,6 +16,8 @@ import net.rabbitknight.open.memory.utils.MemoryFileUtils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import static net.rabbitknight.open.memory.utils.MemoryFileUtils.OPEN_READWRITE;
+
 /**
  * 共享内存抽象类
  */
@@ -63,7 +65,7 @@ public class MemoryFileHolder implements Parcelable {
         cache = new byte[size];
 
         // 如果是Android P及以上 使用SharedMemory
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             try {
                 sharedMemory = SharedMemory.create(fileName, size);
                 sharedBuffer = sharedMemory.mapReadWrite();
@@ -86,7 +88,7 @@ public class MemoryFileHolder implements Parcelable {
         fileName = in.readString();
         size = in.readInt();
         cache = new byte[size];
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             sharedMemory = in.readParcelable(SharedMemory.class.getClassLoader());
             if (sharedMemory == null) {
                 return;
@@ -101,7 +103,7 @@ public class MemoryFileHolder implements Parcelable {
             if (parcelFileDescriptor == null) {
                 return;
             }
-            memoryFile = MemoryFileUtils.openMemoryFile(parcelFileDescriptor, size, 0x1);
+            memoryFile = MemoryFileUtils.openMemoryFile(parcelFileDescriptor, size, OPEN_READWRITE);
         }
     }
 
@@ -114,7 +116,7 @@ public class MemoryFileHolder implements Parcelable {
      * @return
      */
     public boolean writeBytes(byte[] data, int offset, int length) {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             if (sharedBuffer == null) {
                 return false;
             }
@@ -146,7 +148,7 @@ public class MemoryFileHolder implements Parcelable {
      * @return
      */
     public boolean readBytes(byte[] data, int offset, int length) {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             if (sharedBuffer == null) {
                 return false;
             }
@@ -188,7 +190,7 @@ public class MemoryFileHolder implements Parcelable {
                 e.printStackTrace();
             }
         }
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             if (sharedMemory != null) {
                 sharedMemory.close();
             }
@@ -234,7 +236,7 @@ public class MemoryFileHolder implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(fileName);
         dest.writeInt(size);
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             dest.writeParcelable(sharedMemory, flags);
         } else {
             dest.writeParcelable(parcelFileDescriptor, flags);

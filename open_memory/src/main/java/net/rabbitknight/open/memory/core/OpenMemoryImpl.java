@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.util.Log;
 
 import net.rabbitknight.open.memory.IMemoryCenter;
 
@@ -13,6 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class OpenMemoryImpl {
+    private static final String TAG = "OpenMemoryImpl";
 
     private WeakReference<Context> contextWeakReference = null;
     private final Set<IConnectListener> connectListeners = new HashSet<>();
@@ -99,6 +101,7 @@ public class OpenMemoryImpl {
                     try {
                         listener.onServiceConnected();
                     } catch (Exception e) {
+                        Log.w(TAG, "onServiceConnected: listener = " + listener + " Exception", e);
                     }
                 }
             }
