@@ -1,4 +1,4 @@
-package net.rabbitknight.open.memory.core;
+package net.rabbitknight.open.ashmem.core;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -7,14 +7,14 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
-import net.rabbitknight.open.memory.IMemoryCenter;
+import net.rabbitknight.open.ashmem.IMemoryCenter;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Set;
 
-public class OpenMemoryImpl {
-    private static final String TAG = "OpenMemoryImpl";
+public class OpenAshmemImpl {
+    private static final String TAG = "OpenAshmemImpl";
 
     private WeakReference<Context> contextWeakReference = null;
     private final Set<IConnectListener> connectListeners = new HashSet<>();
@@ -23,7 +23,7 @@ public class OpenMemoryImpl {
 
     private volatile boolean connected = false;
 
-    public OpenMemoryImpl(Context context, ComponentName componentName) {
+    public OpenAshmemImpl(Context context, ComponentName componentName) {
         this.contextWeakReference = new WeakReference<>(context);
         this.componentName = componentName;
     }

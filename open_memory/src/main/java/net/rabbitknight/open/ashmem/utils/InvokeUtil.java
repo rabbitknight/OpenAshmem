@@ -1,4 +1,4 @@
-package net.rabbitknight.open.memory.utils;
+package net.rabbitknight.open.ashmem.utils;
 
 import android.text.TextUtils;
 import android.util.Log;

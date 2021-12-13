@@ -1,4 +1,4 @@
-package net.rabbitknight.open.memory.core;
+package net.rabbitknight.open.ashmem.core;
 
 import android.os.Build;
 import android.os.MemoryFile;
@@ -11,12 +11,12 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
-import net.rabbitknight.open.memory.utils.MemoryFileUtils;
+import net.rabbitknight.open.ashmem.utils.MemoryFileUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import static net.rabbitknight.open.memory.utils.MemoryFileUtils.OPEN_READWRITE;
+import static net.rabbitknight.open.ashmem.utils.MemoryFileUtils.OPEN_READWRITE;
 
 /**
  * 共享内存抽象类
@@ -103,7 +103,7 @@ public class MemoryFileHolder implements Parcelable {
             if (parcelFileDescriptor == null) {
                 return;
             }
-            memoryFile = MemoryFileUtils.openMemoryFile(parcelFileDescriptor, size, OPEN_READWRITE);
+            memoryFile = MemoryFileUtils.openAshmemFile(parcelFileDescriptor, size, OPEN_READWRITE);
         }
     }
 

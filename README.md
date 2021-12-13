@@ -1,38 +1,38 @@
-# OpenMemory
+# OpenAshmem
 跨进程 低延迟 低占用，数据传递，基于 Android 的 共享内存。
 
 ## TL;DR
 使用Java层的MemoryFile作为共享内存实现。使用Binder作为同步的信号量。
 
 ## 使用方式
-### 创建OpenMemory
-1. 构造OpenMemory实例
+### 创建OpenAshmem
+1. 构造OpenAshmem实例
 ```
-OpenMemory openMemory = new OpenMemory(context);
+OpenAshmem openAshmem = new OpenAshmem(context);
 ```
 2. 绑定服务与解绑
 ```
 @Override
 protected void onCreate(Bundle savedInstanceState) {
     // 通过bindService 绑定服务
-    openMemory.bind();
+    openAshmem.bind();
 }
 
 @Override
 protected void onDestroy() {
     // 通过unbindService 解除服务绑定
-    openMemory.unbind();
+    openAshmem.unbind();
 }
 
 ```
 
 ### 创建发送器
-1. 通过openMemory创建发送器
+1. 通过openAshmem创建发送器
 ```
 String key = "memory1"; // 指定共享内存的key
 int size = 1024;        // 指定共享内存的尺寸
 // 创建sender
-Sender sender = openMemory.createSender(key,size);
+Sender sender = openAshmem.createSender(key,size);
 ```
 2. 发送消息
 
@@ -46,12 +46,12 @@ int error = sender.send(msg.getBytes(), 0, msg.getBytes().length, timestamp);
 ```
 
 ### 创建接收器
-1. 通过openMemory创建接收器
+1. 通过openAshmem创建接收器
 ```
 String key = "memory1"; // 指定共享内存的key
 int size = 1024;        // 指定共享内存的尺寸
 // 创建Receiver
-Receiver receiver = openMemory.createReceiver(key,size);
+Receiver receiver = openAshmem.createReceiver(key,size);
 ```
 
 2. 接收消息

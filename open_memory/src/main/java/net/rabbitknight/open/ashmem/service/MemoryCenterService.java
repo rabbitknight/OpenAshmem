@@ -1,10 +1,10 @@
-package net.rabbitknight.open.memory.service;
+package net.rabbitknight.open.ashmem.service;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
-import net.rabbitknight.open.memory.IMemoryCenter;
+import net.rabbitknight.open.ashmem.IMemoryCenter;
 
 /**
  * 中心服务

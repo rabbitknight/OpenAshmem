@@ -1,10 +1,10 @@
-package net.rabbitknight.open.memory.service;
+package net.rabbitknight.open.ashmem.service;
 
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
-import net.rabbitknight.open.memory.core.MemoryFileHolder;
+import net.rabbitknight.open.ashmem.core.MemoryFileHolder;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

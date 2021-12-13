@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="net.rabbitknight.open.memory.demo">
+    package="net.rabbitknight.open.ashmem.demo">
 
     <application
         android:allowBackup="true"
@@ -8,8 +8,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.OpenMemory">
-        <activity android:name=".MainActivity">
+        android:theme="@style/Theme.OpenAshmem">
+        <activity android:name="net.rabbitknight.open.ashmem.demo.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -19,7 +19,7 @@
         </activity>
 
         <service
-            android:name=".RemoteService"
+            android:name="net.rabbitknight.open.ashmem.demo.RemoteService"
             android:enabled="true"
             android:exported="true"
             android:process=":remote" />

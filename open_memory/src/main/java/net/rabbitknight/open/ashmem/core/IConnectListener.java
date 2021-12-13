@@ -1,4 +1,4 @@
-package net.rabbitknight.open.memory.core;
+package net.rabbitknight.open.ashmem.core;
 
 public interface IConnectListener {
     void onServiceConnected();

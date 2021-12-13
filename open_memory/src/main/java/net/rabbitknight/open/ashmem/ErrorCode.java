@@ -1,4 +1,4 @@
-package net.rabbitknight.open.memory;
+package net.rabbitknight.open.ashmem;
 
 public class ErrorCode {
     private ErrorCode() {

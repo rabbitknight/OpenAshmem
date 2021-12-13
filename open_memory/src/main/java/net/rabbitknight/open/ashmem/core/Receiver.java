@@ -1,22 +1,22 @@
-package net.rabbitknight.open.memory.core;
+package net.rabbitknight.open.ashmem.core;
 
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
 
-import net.rabbitknight.open.memory.C;
-import net.rabbitknight.open.memory.ErrorCode;
-import net.rabbitknight.open.memory.IMemoryCallback;
-import net.rabbitknight.open.memory.IMemoryCenter;
-import net.rabbitknight.open.memory.IMemoryClient;
+import net.rabbitknight.open.ashmem.C;
+import net.rabbitknight.open.ashmem.ErrorCode;
+import net.rabbitknight.open.ashmem.IMemoryCallback;
+import net.rabbitknight.open.ashmem.IMemoryCenter;
+import net.rabbitknight.open.ashmem.IMemoryClient;
 
 import java.lang.ref.WeakReference;
 
-import static net.rabbitknight.open.memory.C.KEY_HOLDER;
+import static net.rabbitknight.open.ashmem.C.KEY_HOLDER;
 
 public class Receiver extends IMemoryClient.Stub {
     private static final String TAG = "Receiver";
-    private WeakReference<OpenMemoryImpl> openMemoryWeakReference = null;
+    private WeakReference<OpenAshmemImpl> openAshmemWeakReference = null;
     private final String key;
     private final int size;
 
@@ -33,8 +33,8 @@ public class Receiver extends IMemoryClient.Stub {
      * @param key    共享内存
      * @param size   大小
      */
-    Receiver(OpenMemoryImpl memory, String key, int size) {
-        this.openMemoryWeakReference = new WeakReference<>(memory);
+    Receiver(OpenAshmemImpl memory, String key, int size) {
+        this.openAshmemWeakReference = new WeakReference<>(memory);
         this.key = key;
         this.size = size;
         this.cache = new byte[size];
@@ -58,7 +58,7 @@ public class Receiver extends IMemoryClient.Stub {
         @Override
         public void onServiceConnected() {
             Log.d(TAG, "onServiceConnected() called");
-            OpenMemoryImpl memory = openMemoryWeakReference.get();
+            OpenAshmemImpl memory = openAshmemWeakReference.get();
             if (memory == null) {
                 Log.w(TAG, "onServiceConnected: memory is null!!");
                 return;
@@ -107,17 +107,17 @@ public class Receiver extends IMemoryClient.Stub {
 
     public void close() {
         // 关闭
-        OpenMemoryImpl openMemory = openMemoryWeakReference.get();
-        if (openMemory != null) {
-            openMemory.close(this);
+        OpenAshmemImpl openAshmem = openAshmemWeakReference.get();
+        if (openAshmem != null) {
+            openAshmem.close(this);
         }
-        if (openMemory == null) {
+        if (openAshmem == null) {
             return;
         }
         if (!connected) {
             return;
         }
-        IMemoryCenter memoryCenter = openMemory.getRemoteBinder();
+        IMemoryCenter memoryCenter = openAshmem.getRemoteBinder();
         if (memoryCenter == null) {
             return;
         }

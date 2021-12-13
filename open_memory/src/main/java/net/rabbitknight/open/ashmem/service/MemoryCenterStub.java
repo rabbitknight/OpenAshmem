@@ -1,4 +1,4 @@
-package net.rabbitknight.open.memory.service;
+package net.rabbitknight.open.ashmem.service;
 
 import android.os.Bundle;
 import android.os.IBinder;
@@ -6,21 +6,21 @@ import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
 
-import net.rabbitknight.open.memory.C;
-import net.rabbitknight.open.memory.ErrorCode;
-import net.rabbitknight.open.memory.IMemoryCallback;
-import net.rabbitknight.open.memory.IMemoryCenter;
-import net.rabbitknight.open.memory.IMemoryClient;
-import net.rabbitknight.open.memory.core.MemoryFileHolder;
+import net.rabbitknight.open.ashmem.C;
+import net.rabbitknight.open.ashmem.ErrorCode;
+import net.rabbitknight.open.ashmem.IMemoryCallback;
+import net.rabbitknight.open.ashmem.IMemoryCenter;
+import net.rabbitknight.open.ashmem.IMemoryClient;
+import net.rabbitknight.open.ashmem.core.MemoryFileHolder;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static net.rabbitknight.open.memory.C.KEY_CALLBACK;
-import static net.rabbitknight.open.memory.C.KEY_HOLDER;
-import static net.rabbitknight.open.memory.ErrorCode.ERROR_CLIENT_CALLBACK_LOSS;
-import static net.rabbitknight.open.memory.ErrorCode.ERROR_SERVER_CALLBACK_LOSS;
-import static net.rabbitknight.open.memory.ErrorCode.SUCCESS;
+import static net.rabbitknight.open.ashmem.C.KEY_CALLBACK;
+import static net.rabbitknight.open.ashmem.C.KEY_HOLDER;
+import static net.rabbitknight.open.ashmem.ErrorCode.ERROR_CLIENT_CALLBACK_LOSS;
+import static net.rabbitknight.open.ashmem.ErrorCode.ERROR_SERVER_CALLBACK_LOSS;
+import static net.rabbitknight.open.ashmem.ErrorCode.SUCCESS;
 
 public class MemoryCenterStub extends IMemoryCenter.Stub {
     private static final String TAG = "MemoryCenterStub";

@@ -1,4 +1,4 @@
-package net.rabbitknight.open.memory.utils;
+package net.rabbitknight.open.ashmem.utils;
 
 import android.os.Build;
 import android.os.MemoryFile;
@@ -29,12 +29,12 @@ public class MemoryFileUtils {
         return null;
     }
 
-    public static MemoryFile openMemoryFile(ParcelFileDescriptor pfd, int length, int mode) {
+    public static MemoryFile openAshmemFile(ParcelFileDescriptor pfd, int length, int mode) {
         if (pfd == null) {
             throw new IllegalArgumentException("ParcelFileDescriptor is null");
         }
         FileDescriptor fd = pfd.getFileDescriptor();
-        return openMemoryFile(fd, length, mode);
+        return openAshmemFile(fd, length, mode);
     }
 
     private static final int PROT_READ = 0x1;
@@ -55,16 +55,16 @@ public class MemoryFileUtils {
      *               PROT_WRITE|PROT_READ可读可写方式打开
      * @return MemoryFile
      */
-    public static MemoryFile openMemoryFile(FileDescriptor fd, int length, int mode) {
+    public static MemoryFile openAshmemFile(FileDescriptor fd, int length, int mode) {
         if (mode != OPEN_READONLY && mode != OPEN_READWRITE)
             throw new IllegalArgumentException("invalid mode, only support OPEN_READONLY and OPEN_READWRITE");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            return openMemoryFileV27(fd, mode);
+            return openAshmemFileV27(fd, mode);
         }
-        return openMemoryFileV26(fd, length, mode);
+        return openAshmemFileV26(fd, length, mode);
     }
 
-    private static MemoryFile openMemoryFileV27(FileDescriptor fd, int mode) {
+    private static MemoryFile openAshmemFileV27(FileDescriptor fd, int mode) {
         MemoryFile memoryFile = null;
         try {
             memoryFile = new MemoryFile("service.remote", 1);
@@ -82,12 +82,12 @@ public class MemoryFileUtils {
             InvokeUtil.setValueOfField(memoryFile, "mMapping", mapping);
             return memoryFile;
         } catch (Exception e) {
-            throw new RuntimeException("openMemoryFile failed!", e);
+            throw new RuntimeException("openAshmemFile failed!", e);
         }
 
     }
 
-    public static MemoryFile openMemoryFileV26(FileDescriptor fd, int length, int mode) {
+    public static MemoryFile openAshmemFileV26(FileDescriptor fd, int length, int mode) {
         MemoryFile memoryFile = null;
         try {
             memoryFile = new MemoryFile("service.remote", 1);
@@ -100,7 +100,7 @@ public class MemoryFileUtils {
 
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e(TAG, "openMemoryFileV26: error ", e);
+            Log.e(TAG, "openAshmemFileV26: error ", e);
         }
 
         return memoryFile;

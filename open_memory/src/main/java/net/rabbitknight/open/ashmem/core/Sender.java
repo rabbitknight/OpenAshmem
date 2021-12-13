@@ -1,26 +1,26 @@
-package net.rabbitknight.open.memory.core;
+package net.rabbitknight.open.ashmem.core;
 
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
 
-import net.rabbitknight.open.memory.C;
-import net.rabbitknight.open.memory.ErrorCode;
-import net.rabbitknight.open.memory.IMemoryCenter;
-import net.rabbitknight.open.memory.IMemoryClient;
+import net.rabbitknight.open.ashmem.C;
+import net.rabbitknight.open.ashmem.ErrorCode;
+import net.rabbitknight.open.ashmem.IMemoryCenter;
+import net.rabbitknight.open.ashmem.IMemoryClient;
 
 import java.lang.ref.WeakReference;
 
-import static net.rabbitknight.open.memory.C.KEY_HOLDER;
-import static net.rabbitknight.open.memory.ErrorCode.ERROR_SENDER_FILE_CALL;
-import static net.rabbitknight.open.memory.ErrorCode.ERROR_SENDER_FILE_LOSS;
-import static net.rabbitknight.open.memory.ErrorCode.ERROR_SENDER_FILE_WRITE;
-import static net.rabbitknight.open.memory.ErrorCode.ERROR_SENDER_SERVICE_API_LOSS;
-import static net.rabbitknight.open.memory.ErrorCode.ERROR_SENDER_SERVICE_NOT_CONNECT;
+import static net.rabbitknight.open.ashmem.C.KEY_HOLDER;
+import static net.rabbitknight.open.ashmem.ErrorCode.ERROR_SENDER_FILE_CALL;
+import static net.rabbitknight.open.ashmem.ErrorCode.ERROR_SENDER_FILE_LOSS;
+import static net.rabbitknight.open.ashmem.ErrorCode.ERROR_SENDER_FILE_WRITE;
+import static net.rabbitknight.open.ashmem.ErrorCode.ERROR_SENDER_SERVICE_API_LOSS;
+import static net.rabbitknight.open.ashmem.ErrorCode.ERROR_SENDER_SERVICE_NOT_CONNECT;
 
 public class Sender extends IMemoryClient.Stub {
     private static final String TAG = "Sender";
-    private WeakReference<OpenMemoryImpl> openMemoryWeakReference = null;
+    private WeakReference<OpenAshmemImpl> openAshmemWeakReference = null;
     private final String key;
     private final int size;
 
@@ -36,8 +36,8 @@ public class Sender extends IMemoryClient.Stub {
      * @param key    共享内存
      * @param size   大小
      */
-    Sender(OpenMemoryImpl memory, String key, int size) {
-        this.openMemoryWeakReference = new WeakReference<>(memory);
+    Sender(OpenAshmemImpl memory, String key, int size) {
+        this.openAshmemWeakReference = new WeakReference<>(memory);
         this.key = key;
         this.size = size;
     }
@@ -96,9 +96,9 @@ public class Sender extends IMemoryClient.Stub {
             }
         }
         // 关闭
-        OpenMemoryImpl openMemory = openMemoryWeakReference.get();
-        if (openMemory != null) {
-            openMemory.close(this);
+        OpenAshmemImpl openAshmem = openAshmemWeakReference.get();
+        if (openAshmem != null) {
+            openAshmem.close(this);
         }
     }
 
@@ -111,7 +111,7 @@ public class Sender extends IMemoryClient.Stub {
         @Override
         public void onServiceConnected() {
             connected = true;
-            OpenMemoryImpl memory = openMemoryWeakReference.get();
+            OpenAshmemImpl memory = openAshmemWeakReference.get();
             if (memory == null) {
                 Log.w(TAG, "onServiceConnected: memory is null!!");
                 return;

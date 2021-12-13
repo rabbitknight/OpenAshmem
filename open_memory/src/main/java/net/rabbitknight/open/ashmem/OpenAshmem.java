@@ -1,25 +1,25 @@
-package net.rabbitknight.open.memory;
+package net.rabbitknight.open.ashmem;
 
 import android.content.ComponentName;
 import android.content.Context;
 
-import net.rabbitknight.open.memory.core.OpenMemoryImpl;
-import net.rabbitknight.open.memory.core.Receiver;
-import net.rabbitknight.open.memory.core.Sender;
-import net.rabbitknight.open.memory.service.MemoryCenterService;
+import net.rabbitknight.open.ashmem.core.OpenAshmemImpl;
+import net.rabbitknight.open.ashmem.core.Receiver;
+import net.rabbitknight.open.ashmem.core.Sender;
+import net.rabbitknight.open.ashmem.service.MemoryCenterService;
 
 /**
  * 外观类
  */
-public class OpenMemory {
-    private final OpenMemoryImpl innerOpenMemory;
+public class OpenAshmem {
+    private final OpenAshmemImpl innerOpenAshmem;
 
     /**
      * 创建共享内存
      *
      * @param context 上下文
      */
-    public OpenMemory(Context context) {
+    public OpenAshmem(Context context) {
         this(context, new ComponentName(context, MemoryCenterService.class));
     }
 
@@ -29,22 +29,22 @@ public class OpenMemory {
      * @param context       上下文
      * @param componentName 访问包名
      */
-    public OpenMemory(Context context, ComponentName componentName) {
-        innerOpenMemory = new OpenMemoryImpl(context, componentName);
+    public OpenAshmem(Context context, ComponentName componentName) {
+        innerOpenAshmem = new OpenAshmemImpl(context, componentName);
     }
 
     /**
      * 绑定服务
      */
     public void bind() {
-        innerOpenMemory.bind();
+        innerOpenAshmem.bind();
     }
 
     /**
      * 解除绑定
      */
     public void unbind() {
-        innerOpenMemory.unbind();
+        innerOpenAshmem.unbind();
     }
 
     /**
@@ -55,7 +55,7 @@ public class OpenMemory {
      * @return {@link Sender}
      */
     public Sender createSender(String key, int size) {
-        return innerOpenMemory.createSender(key, size);
+        return innerOpenAshmem.createSender(key, size);
     }
 
     /**
@@ -66,6 +66,6 @@ public class OpenMemory {
      * @return {@link Receiver}
      */
     public Receiver createReceiver(String key, int size) {
-        return innerOpenMemory.createReceiver(key, size);
+        return innerOpenAshmem.createReceiver(key, size);
     }
 }

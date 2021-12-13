@@ -7,7 +7,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "net.rabbitknight.open.memory"
+        applicationId "net.rabbitknight.open.ashmem"
         minSdkVersion 22
         targetSdkVersion 31
         versionCode 1

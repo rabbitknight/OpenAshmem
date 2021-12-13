@@ -1,4 +1,4 @@
-package net.rabbitknight.open.memory.demo;
+package net.rabbitknight.open.ashmem.demo;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,14 +8,14 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import net.rabbitknight.open.memory.OpenMemory;
-import net.rabbitknight.open.memory.core.Receiver;
-import net.rabbitknight.open.memory.core.Sender;
+import net.rabbitknight.open.ashmem.OpenAshmem;
+import net.rabbitknight.open.ashmem.core.Receiver;
+import net.rabbitknight.open.ashmem.core.Sender;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private Button sendBtn;
-    private OpenMemory openMemory = null;
+    private OpenAshmem openAshmem = null;
     private Sender sender = null;
     private Receiver receiver = null;
 
@@ -25,10 +25,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initView();
-        openMemory = new OpenMemory(this);
-        this.sender = openMemory.createSender("test1", 1024 * 1024);
+        openAshmem = new OpenAshmem(this);
+        this.sender = openAshmem.createSender("test1", 1024 * 1024);
 
-        this.receiver = openMemory.createReceiver("test2", 1024 * 1024);
+        this.receiver = openAshmem.createReceiver("test2", 1024 * 1024);
         this.receiver.listen(new Receiver.Callback() {
             @Override
             public void onReceive(byte[] payload, int offset, int length, long timestamp) {
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "onReceive() called with: payload = [" + msg + "], offset = [" + offset + "], length = [" + length + "], timestamp = [" + timestamp + "]");
             }
         });
-        openMemory.bind();
+        openAshmem.bind();
         Intent intent = new Intent(this, RemoteService.class);
         startService(intent);
     }
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        openMemory.unbind();
+        openAshmem.unbind();
         Intent intent = new Intent(this, RemoteService.class);
         stopService(intent);
     }
